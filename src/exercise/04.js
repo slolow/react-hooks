@@ -4,8 +4,14 @@
 import * as React from 'react'
 import { useLocalStorageState } from './02'
 
+const initialSquares = Array(9).fill(null)
+const initialHistory = Array(1).fill(initialSquares)
+const initialMoveNo = 0
+
 function Board() {
-  const [squares, setSquares] = useLocalStorageState('squares', Array(9).fill(null))
+  const [squares, setSquares] = useLocalStorageState('squares', initialSquares)
+  const [history, setHistory] = useLocalStorageState('history', initialHistory)
+  const [moveNo, setMoveNo] = useLocalStorageState('moveNo', initialMoveNo)
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
   const status = calculateStatus(winner, squares, nextValue)
@@ -16,13 +22,24 @@ function Board() {
     }
 
     const squaresCopy = [...squares]
+    const historyCopy = [...history]
 
     squaresCopy[square] = nextValue
+    historyCopy[squaresCopy.filter(Boolean).length] = squaresCopy
     setSquares(squaresCopy)
+    setHistory(historyCopy)
+    setMoveNo(moveNo+1)
+  }
+
+  const selectHistory = (move, index) => {
+    setSquares(move)
+    setMoveNo(index)
   }
 
   function restart() {
-    setSquares(Array(9).fill(null))
+    setSquares(initialSquares)
+    setHistory(initialHistory)
+    setMoveNo(initialMoveNo)
   }
 
   function renderSquare(i) {
@@ -51,6 +68,21 @@ function Board() {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
+      <ol>
+        {history
+          .map((move, index) => {
+            const disabled = index === moveNo
+            const child = disabled ? `Go to move #${index} (current)` : `Go to move #${index}` 
+            return <button 
+              key={move} 
+              onClick={() => selectHistory(move, index)}
+              disabled={disabled}
+            >
+              {child}
+            </button>
+          })
+        }
+      </ol>
       <button className="restart" onClick={restart}>
         restart
       </button>
