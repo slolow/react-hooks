@@ -8,43 +8,11 @@ const initialSquares = Array(9).fill(null)
 const initialHistory = Array(1).fill(initialSquares)
 const initialMoveNo = 0
 
-function Board() {
-  const [squares, setSquares] = useLocalStorageState('squares', initialSquares)
-  const [history, setHistory] = useLocalStorageState('history', initialHistory)
-  const [moveNo, setMoveNo] = useLocalStorageState('moveNo', initialMoveNo)
-  const nextValue = calculateNextValue(squares)
-  const winner = calculateWinner(squares)
-  const status = calculateStatus(winner, squares, nextValue)
-
-  function selectSquare(square) {
-    if (winner || squares[square]) {
-      return
-    }
-
-    const squaresCopy = [...squares]
-    const historyCopy = [...history]
-
-    squaresCopy[square] = nextValue
-    historyCopy[squaresCopy.filter(Boolean).length] = squaresCopy
-    setSquares(squaresCopy)
-    setHistory(historyCopy)
-    setMoveNo(moveNo+1)
-  }
-
-  const selectHistory = (move, index) => {
-    setSquares(move)
-    setMoveNo(index)
-  }
-
-  function restart() {
-    setSquares(initialSquares)
-    setHistory(initialHistory)
-    setMoveNo(initialMoveNo)
-  }
-
+function Board({onClick, squares}) {
+  
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => selectSquare(i)}>
+      <button className="square" onClick={() => onClick(i)}>
         {squares[i]}
       </button>
     )
@@ -52,7 +20,6 @@ function Board() {
 
   return (
     <div>
-      <div className="status">{status}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -68,33 +35,67 @@ function Board() {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
-      <ol>
-        {history
-          .map((move, index) => {
-            const disabled = index === moveNo
-            const child = disabled ? `Go to move #${index} (current)` : `Go to move #${index}` 
-            return <button 
-              key={move} 
-              onClick={() => selectHistory(move, index)}
-              disabled={disabled}
-            >
-              {child}
-            </button>
-          })
-        }
-      </ol>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
     </div>
   )
 }
 
 function Game() {
+  const [history, setHistory] = useLocalStorageState('history', initialHistory)
+  const [moveNo, setMoveNo] = useLocalStorageState('moveNo', initialMoveNo)
+  const currentSquares = history[moveNo]
+  const nextValue = calculateNextValue(currentSquares)
+  const winner = calculateWinner(currentSquares)
+  const status = calculateStatus(winner, currentSquares, nextValue)
+
+  const selectMove = (moveNo) => {
+    setMoveNo(moveNo)
+  }
+
+  function selectSquare(square) {
+    if (winner || currentSquares[square] !== null) {
+      return
+    }
+
+    const squaresCopy = [...currentSquares]
+    const historyCopy = [...history]
+
+    squaresCopy[square] = nextValue
+    historyCopy[squaresCopy.filter(Boolean).length] = squaresCopy
+    setHistory(historyCopy)
+    setMoveNo(moveNo+1)
+  }
+
+  function restart() {
+    setHistory(initialHistory)
+    setMoveNo(initialMoveNo)
+  }
+
+const moves = history.map((move, index) => {
+    const disabled = index === moveNo
+    const buttonDesciption = index === 0 ? 'restart game' : `Go to move #${index}`
+    return (   
+      <li key={index}>
+        <button
+          onClick={() => selectMove(index)}
+          disabled={disabled}
+        >
+          {buttonDesciption} {disabled ? '(current)' : null}
+        </button>
+      </li>   
+    )
+  })
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <Board onClick={selectSquare} squares={currentSquares} />
+        <button className="restart" onClick={restart}>
+          restart
+        </button>
+      </div>
+      <div className="game-info">
+        <div>{status}</div>
+        <ol>{moves}</ol>
       </div>
     </div>
   )
