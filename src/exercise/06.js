@@ -23,9 +23,14 @@ function PokemonInfo({pokemonName}) {
 
 function ErrorView({error}) {
   return (
-    <div role="alert">
-      There was an error: <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
-    </div>
+    <>
+      <div className="pokemon-info__img-wrapper">
+        <img src="https://pm1.aminoapps.com/6448/abef6f8bc30b53eae71a2a7d495ab1b5c9e9c025_hq.jpg" alt="sad Psyduck" />
+      </div>
+      <div role="alert">
+        There was an error: <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+      </div>
+    </>
   )
 }
 
