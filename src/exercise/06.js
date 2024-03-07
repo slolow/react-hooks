@@ -61,7 +61,7 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <ErrorBoundary FallbackComponent={FallbackComponent} onReset={() => {
+        <ErrorBoundary FallbackComponent={FallbackComponent} resetKeys={[pokemonName]} onReset={() => {
             setPokemonName('');
         }}>
           <PokemonInfo pokemonName={pokemonName} />
