@@ -4,6 +4,22 @@
 import * as React from 'react'
 import {PokemonDataView, PokemonForm, PokemonInfoFallback, fetchPokemon} from '../pokemon'
 
+class ErrorBoundary extends React.Component {
+  state = { error: null }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  render() {
+    const { error } = this.state;
+    if (error) {
+      return <this.props.FallbackComponent error={error} />;
+    }
+
+    return this.props.children;
+  }
+}
+
 function PokemonInfo({pokemonName}) {
   const [state, setState] = React.useState({
     status: 'idle', 
@@ -30,11 +46,11 @@ function PokemonInfo({pokemonName}) {
   const isRejected = status === 'rejected'
   if (isIdle) return 'Submit a pokemon'
   if (isPending) return <PokemonInfoFallback name={pokemonName} />
-  if (isRejected) return <ErrorView error={error} />
+  if (isRejected) throw error;
   if (isResolved) return <PokemonDataView pokemon={pokemon} />
 }
 
-function ErrorView({error}) {
+function FallbackComponent({error}) {
   return (
     <>
       <div className="pokemon-info__img-wrapper">
@@ -59,7 +75,9 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
+        <ErrorBoundary FallbackComponent={FallbackComponent}>
+          <PokemonInfo pokemonName={pokemonName} />
+        </ErrorBoundary>
       </div>
     </div>
   )
